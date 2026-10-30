@@ -12,7 +12,7 @@ export default async (req) => {
     headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY, "Content-Type": "application/json" },
     body: JSON.stringify({ text, model_id: "eleven_multilingual_v2" }),
   });
-  if (!r.ok) return new Response("TTS hatası", { status: r.status });
+  if (!r.ok) return new Response((await r.text()).slice(0, 300), { status: r.status });
   return new Response(await r.arrayBuffer(), { headers: { "Content-Type": "audio/mpeg" } });
 };
 
