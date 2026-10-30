@@ -89,6 +89,9 @@ body.sheet #sheet{transform:translate(-50%,0);visibility:visible}
 @media(min-width:700px){#logo{width:100px;height:100px}.msg{max-width:75%}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
+<script>
+window.addEventListener("error",function(e){var d=document.createElement("div");d.style.cssText="position:fixed;left:0;right:0;top:0;z-index:99;background:#b3261e;color:#fff;padding:8px 12px;font:14px sans-serif";d.textContent="Hata: "+e.message+" (satir "+e.lineno+")";(document.body||document.documentElement).appendChild(d)});
+</script>
 </head>
 <body>
 <div id="app">
@@ -140,6 +143,7 @@ body.sheet #sheet{transform:translate(-50%,0);visibility:visible}
 <div id="toast"></div>
 
 <script>
+(function(){"use strict";
 /* ===== AYARLAR: model adları değişirse buradan düzelt ===== */
 const CONFIG={
   chatUrl:"/api/chat",   // güvenli sunucu: anahtarlar Vercel'de kalır
@@ -152,7 +156,7 @@ const CONFIG={
 const LANG="tr-TR";
 const $=id=>document.getElementById(id);
 const log=$("log"),box=$("box");
-let history=[],pending=[];
+let chatHistory=[],pending=[];
 const store={get:k=>{try{return localStorage.getItem(k)||""}catch(e){return ""}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
 function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),2000)}
 
@@ -194,18 +198,18 @@ async function ask(text,files=[]){
   const parts=[];let ctx="";
   files.forEach(f=>{if(f.kind==="image")parts.push({type:"image_url",image_url:{url:f.data}});else ctx+=`\n\n--- ${f.name} ---\n${f.data}`});
   parts.unshift({type:"text",text:(text||"Ekli dosyalara bak lütfen.")+ctx});
-  history.push({role:"user",content:parts.length===1?parts[0].text:parts});
+  chatHistory.push({role:"user",content:parts.length===1?parts[0].text:parts});
   const tier=$("tier").value;
   const sys=CONFIG.system+(CONFIG.extra[tier]?" "+CONFIG.extra[tier]:"");
   const out=add("bot","",dots());
   try{
     const r=await fetch(CONFIG.chatUrl,{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model:CONFIG.models[tier],messages:[{role:"system",content:sys},...history.slice(-12)]})});
-    if(!r.ok){let m="sunucu "+r.status;try{const b=await r.json();const d=b.error?.message||b.error;if(d)m+=": "+d}catch(e){}throw new Error(m)}
-    const j=await r.json();const a=j.choices?.[0]?.message?.content||"(cevap yok)";
-    out.textContent=a;history.push({role:"assistant",content:a});
+      body:JSON.stringify({model:CONFIG.models[tier],messages:[{role:"system",content:sys},...chatHistory.slice(-12)]})});
+    if(!r.ok){let m="sunucu "+r.status;try{const b=await r.json();const d=(b.error&&b.error.message)||b.error;if(d)m+=": "+d}catch(e){}throw new Error(m)}
+    const j=await r.json();const a=(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||"(cevap yok)";
+    out.textContent=a;chatHistory.push({role:"assistant",content:a});
     log.scrollTop=log.scrollHeight;return a;
-  }catch(e){out.textContent="Yapay zekaya ulaşılamadı ("+e.message+"). Bağlantını kontrol edip tekrar dene.";history.pop();return null}
+  }catch(e){out.textContent="Yapay zekaya ulaşılamadı ("+e.message+"). Bağlantını kontrol edip tekrar dene.";chatHistory.pop();return null}
 }
 async function send(){
   const text=box.value.trim();
@@ -213,7 +217,7 @@ async function send(){
   box.value="";box.style.height="auto";
   const files=pending;pending=[];renderChips();updateGo();
   if(text.startsWith("/music")){add("user",text);return makeMusic(text.replace("/music","").trim()||"sakin lo-fi ritim")}
-  if(/spotify/i.test(text)&&/(geçmiş|history|öner|recommend)/i.test(text)&&!store.get("dk_sp_token"))
+  if(/spotify/i.test(text)&&/(geçmiş|chatHistory|öner|recommend)/i.test(text)&&!store.get("dk_sp_token"))
     toast("Spotify girişi henüz kurulu değil");
   await ask(text,files);
 }
@@ -284,18 +288,4 @@ function vListen(){
   let final="";vRec=new SR();vRec.lang=LANG;vRec.interimResults=true;
   vRec.onresult=e=>{final=[...e.results].map(r=>r[0].transcript).join("");$("vtext").textContent=final};
   vRec.onerror=ev=>{
-    if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){vRec.onend=null;vRec=null;toast("Mikrofon izni gerekli");closeVoice()}
-  };
-  vRec.onend=()=>{vRec=null;if(!vOn)return;final.trim()?vAsk(final.trim()):setTimeout(vListen,300)};
-  try{vRec.start()}catch(e){setTimeout(vListen,500)}
-}
-async function vAsk(t){
-  setState("thinking");
-  const a=await ask(t);
-  if(!vOn)return;
-  if(a){$("vtext").textContent=a;await vSpeak(a)}else{$("vtext").textContent="Bir hata oldu, tekrar dinliyorum."}
-  if(vOn)vListen();
-}
-function vSpeak(t){
-  return new Promise(async res=>{
-    setSta
+    if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){vRec.onend=null;vRec=null;toast("Mikrofon izni gerekli");closeVoice(
