@@ -1,95 +1,161 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dunkles</title>
 <style>
-:root{--bg:#e4e6e8;--panel:#eceef0;--bubble:#f7f8f9;--user:#0a3626;--userText:#fff;--text:#1b1f1d;--muted:#5d6661;--line:#cfd3d6;--accent:#0a3626}
-*{box-sizing:border-box}
+:root{--bg:#0b100d;--panel:#111a15;--bubble:#17231c;--user:#1f6b4a;--userText:#f2fff7;--text:#e6efe9;--muted:#8fa399;--line:#24352b;--accent:#2a8a5e;--glow:#3ddc97;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center}
-#app{width:100%;max-width:900px;height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0)}
-header{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 16px 8px}
-/* LOGO FRAME: replace dunkles.png with your own file, or paste an <img> / <svg> inside #logo */
-#logo{width:72px;height:72px;border:2px dashed var(--line);border-radius:20px;display:grid;place-items:center;overflow:hidden;color:var(--muted);font-size:12px;background:var(--panel)}
+body{background:radial-gradient(900px 500px at 50% -10%,#10281d 0%,var(--bg) 60%);color:var(--text);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+button,select,input,textarea{font:inherit;color:inherit}
+#app{width:100%;max-width:900px;height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0);position:relative}
+header{display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 16px 8px;position:relative}
+#logo{width:72px;height:72px;border-radius:22px;display:grid;place-items:center;overflow:hidden;color:#0a3626;font-size:12px;background:#dcebe2;box-shadow:0 0 0 1px var(--line),0 8px 30px rgba(61,220,151,.15);animation:logoIn .8s cubic-bezier(.2,.8,.2,1)}
 #logo img{width:100%;height:100%;object-fit:contain}
-.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
-select,button{font:inherit}
-select{background:var(--bubble);border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--text)}
-.chip{background:var(--bubble);border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--text);cursor:pointer}
-.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-#log{flex:1;overflow-y:auto;padding:8px 16px;display:flex;flex-direction:column;gap:10px}
-.msg{max-width:85%;padding:10px 14px;border-radius:20px;background:var(--bubble);border:1px solid var(--line);white-space:pre-wrap;word-wrap:break-word}
-.msg.user{align-self:flex-end;background:var(--user);color:var(--userText);border-color:var(--user)}
-.msg audio,.msg img{max-width:100%;border-radius:12px;margin-top:6px}
-.empty{margin:auto;text-align:center;color:var(--muted);max-width:320px}
-#chips{display:flex;gap:6px;padding:0 16px;flex-wrap:wrap}
-#chips span{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px}
-footer{padding:8px 12px calc(10px + env(safe-area-inset-bottom,0));}
-.row{display:flex;gap:6px;align-items:flex-end;background:var(--bubble);border:1px solid var(--line);border-radius:26px;padding:6px}
-textarea{flex:1;border:0;outline:0;background:transparent;resize:none;font:inherit;color:var(--text);max-height:140px;padding:8px 6px}
-.ib{width:42px;height:42px;border-radius:50%;border:0;background:transparent;cursor:pointer;font-size:20px;color:var(--text)}
+#tier{appearance:none;background:var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%238fa399' stroke-width='2'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 12px center;border:1px solid var(--line);border-radius:999px;padding:7px 34px 7px 14px;cursor:pointer;transition:border-color .2s}
+#tier:hover{border-color:var(--accent)}
+.ib{width:42px;height:42px;border-radius:50%;border:0;background:transparent;cursor:pointer;display:grid;place-items:center;transition:background .2s,transform .15s}
 .ib:hover{background:var(--panel)}
-#mic{background:var(--accent);color:#fff}
-#mic.rec{background:#b3261e}
-#send{background:var(--accent);color:#fff}
-button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-dialog{border:1px solid var(--line);border-radius:20px;background:var(--bubble);color:var(--text);max-width:420px;width:90%}
-dialog input{width:100%;padding:8px;border:1px solid var(--line);border-radius:10px;font:inherit;margin:4px 0 12px}
+.ib:active{transform:scale(.92)}
+#gear{position:absolute;right:12px;top:14px}
+#gear:hover svg{animation:spin .8s ease}
+#log{flex:1;overflow-y:auto;padding:10px 16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.msg{max-width:85%;padding:10px 14px;border-radius:20px;background:var(--bubble);border:1px solid var(--line);white-space:pre-wrap;word-wrap:break-word;animation:pop .3s ease}
+.msg.user{align-self:flex-end;background:var(--user);color:var(--userText);border-color:var(--user);border-bottom-right-radius:6px}
+.msg.bot{border-bottom-left-radius:6px}
+.msg audio{display:block;margin-top:8px;max-width:100%}
+.empty{margin:auto;text-align:center;color:var(--muted);max-width:320px;animation:pop .6s ease}
+.empty b{color:var(--text);font-size:20px}
+.dots{display:inline-flex;gap:5px;padding:4px 0}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--glow);animation:blink 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+#chips{display:flex;gap:6px;padding:0 16px;flex-wrap:wrap}
+#chips span{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:2px 12px;font-size:13px;cursor:pointer;animation:pop .2s}
+footer{padding:8px 12px calc(10px + env(safe-area-inset-bottom,0))}
+.row{display:flex;gap:4px;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:6px;transition:border-color .2s,box-shadow .2s}
+.row:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(42,138,94,.2)}
+textarea{flex:1;border:0;outline:0;background:transparent;resize:none;max-height:140px;padding:9px 6px}
+textarea::placeholder{color:var(--muted)}
+#mic.rec{background:#b3261e;color:#fff;animation:pulse 1.2s infinite}
+.main{background:var(--accent);color:#fff}
+.main:hover{background:#34a171}
+#send{display:none}
+.row.has #send{display:grid}.row.has #vbtn{display:none}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+
+/* settings sheet */
+#back{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;z-index:20}
+#sheet{position:fixed;left:50%;bottom:0;width:100%;max-width:560px;background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:26px 26px 0 0;padding:12px 20px calc(20px + env(safe-area-inset-bottom,0));transform:translate(-50%,105%);visibility:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),visibility .35s;z-index:21}
+body.sheet #back{opacity:1;visibility:visible}
+body.sheet #sheet{transform:translate(-50%,0);visibility:visible}
+.grab{width:42px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 12px}
+#sheet h2{margin:0 0 12px;font-size:20px}
+#sheet label{display:block;color:var(--muted);font-size:14px;margin-bottom:12px}
+#sheet input,#sheet select{display:block;width:100%;margin-top:6px;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:12px;color:var(--text)}
+#sheet input:focus,#sheet select:focus{border-color:var(--accent);outline:0}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+.btn{border:0;border-radius:999px;padding:10px 20px;background:var(--accent);color:#fff;cursor:pointer;transition:transform .15s,background .2s}
+.btn:hover{background:#34a171}.btn:active{transform:scale(.96)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.btn.ghost:hover{background:var(--bubble)}
+#toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);background:var(--accent);color:#fff;padding:8px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:.3s;z-index:40}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* voice overlay */
+#voice{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;background:radial-gradient(600px 600px at 50% 45%,#0f3a28 0%,#070b09 70%);opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s;padding:24px;text-align:center}
+#voice.open{opacity:1;visibility:visible}
+#vclose{position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top,0))}
+.vwrap{position:relative;width:230px;height:230px;display:grid;place-items:center}
+.ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--glow);opacity:0}
+#voice[data-s=listening] .ring,#voice[data-s=speaking] .ring{animation:ring 2.4s ease-out infinite}
+#voice[data-s=speaking] .ring{border-color:#9affd0}
+.ring.r2{animation-delay:1.2s!important}
+#orb{width:190px;height:190px;border-radius:50%;border:0;cursor:pointer;background:radial-gradient(circle at 35% 30%,#3aa874,#145238 70%);box-shadow:0 0 60px rgba(61,220,151,.35),inset 0 0 30px rgba(0,0,0,.3);display:grid;place-items:center;transition:transform .3s}
+#voice[data-s=thinking] #orb{animation:breathe 1.4s ease-in-out infinite}
+#wave{display:flex;align-items:center;justify-content:center;gap:5px;height:110px}
+#wave i{display:block;width:5px;height:100%;border-radius:5px;background:#eafff4;transform:scaleY(.15);transform-origin:center}
+#vstate{font-size:20px;font-weight:600}
+#vtext{color:var(--muted);max-width:520px;max-height:30vh;overflow:auto;min-height:24px}
+
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}}
+@keyframes blink{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-4px)}}
+@keyframes logoIn{from{opacity:0;transform:scale(.8)}}
+@keyframes spin{to{transform:rotate(180deg)}}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(179,38,30,.25)}}
+@keyframes ring{0%{transform:scale(.8);opacity:.6}100%{transform:scale(1.35);opacity:0}}
+@keyframes breathe{50%{transform:scale(.93)}}
 @media(min-width:700px){#logo{width:88px;height:88px}.msg{max-width:75%}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div id="app">
 <header>
-  <div id="logo"><img src="dunkles.png" alt="Dunkles logo" onerror="this.replaceWith('Your logo')"></div>
-  <div class="bar">
-    <select id="tier" aria-label="Performance mode">
-      <option value="normal">Normal · fast</option>
-      <option value="high">High · balanced</option>
-      <option value="max">Maximum · deep</option>
-      <option value="xhigh">Extra High · ultimate</option>
-    </select>
-    <button class="chip" id="hands">Hands-free</button>
-    <button class="chip" id="gear">Settings</button>
-  </div>
+  <button class="ib" id="gear" aria-label="Ayarlar"><svg class="i" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>
+  <div id="logo"><img src="dunkles.png" alt="Dunkles logo" onerror="this.replaceWith('Logo')"></div>
+  <select id="tier" aria-label="Performans modu">
+    <option value="normal">Normal · hızlı</option>
+    <option value="high">Yüksek · dengeli</option>
+    <option value="max">Maksimum · derin</option>
+    <option value="xhigh">Ekstra Yüksek · en güçlü</option>
+  </select>
 </header>
 
-<div id="log"><div class="empty" id="empty"><b>Hi, I'm Dunkles.</b><br>Type, talk, or attach a file. Start a message with <code>/music</code> to generate a track.</div></div>
+<div id="log"><div class="empty" id="empty"><b>Merhaba, ben Dunkles.</b><br>Yaz, konuş ya da dosya ekle. Müzik üretmek için mesajı <code>/music</code> ile başlat.</div></div>
 <div id="chips"></div>
 
 <footer>
-  <div class="row">
-    <button class="ib" id="attach" aria-label="Attach file">📎</button>
-    <textarea id="box" rows="1" placeholder="Message Dunkles"></textarea>
-    <button class="ib" id="mic" aria-label="Voice input">🎤</button>
-    <button class="ib" id="send" aria-label="Send">➤</button>
+  <div class="row" id="row">
+    <button class="ib" id="attach" aria-label="Dosya ekle"><svg class="i" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+    <textarea id="box" rows="1" placeholder="Dunkles'e yaz"></textarea>
+    <button class="ib" id="mic" aria-label="Sesle yaz"><svg class="i" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg></button>
+    <button class="ib main" id="vbtn" aria-label="Sesli sohbet"><svg class="i" viewBox="0 0 24 24"><path d="M4 10v4M8 6v12M12 3v18M16 8v8M20 11v2"/></svg></button>
+    <button class="ib main" id="send" aria-label="Gönder"><svg class="i" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
   </div>
   <input type="file" id="file" hidden multiple accept="image/*,video/*,audio/*,.pdf,.txt,.md,.csv,.json,.doc,.docx">
 </footer>
 </div>
 
-<dialog id="dlg">
-  <h3>Settings</h3>
-  <label>Hugging Face token (optional, for /music)<input id="hf" placeholder="hf_..." autocomplete="off"></label>
-  <label>Spotify Client ID (optional)<input id="sp" placeholder="Spotify Client ID" autocomplete="off"></label>
-  <button class="chip on" id="save">Save</button> <button class="chip" id="close">Close</button>
-</dialog>
+<div id="back"></div>
+<section id="sheet" role="dialog" aria-modal="true" aria-label="Ayarlar">
+  <div class="grab"></div>
+  <h2>Ayarlar</h2>
+  <label>Konuşma sesi
+    <select id="voiceSel"><option value="eleven">ElevenLabs (doğal ses)</option><option value="browser">Tarayıcı sesi (ücretsiz)</option></select>
+  </label>
+  <label>Hugging Face anahtarı (isteğe bağlı, /music için)<input id="hf" type="password" placeholder="hf_..." autocomplete="off"></label>
+  <label>Spotify Client ID (isteğe bağlı)<input id="sp" placeholder="Spotify Client ID" autocomplete="off"></label>
+  <div class="acts"><button class="btn ghost" id="clear">Sohbeti temizle</button><button class="btn" id="save">Kaydet</button></div>
+</section>
+
+<div id="voice" data-s="idle" aria-hidden="true">
+  <button class="ib" id="vclose" aria-label="Sesli sohbeti kapat"><svg class="i" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  <div class="vwrap"><div class="ring"></div><div class="ring r2"></div>
+    <button id="orb" aria-label="Konuşmayı kes ve dinle"><div id="wave"></div></button></div>
+  <div id="vstate">Hazır</div>
+  <div id="vtext"></div>
+</div>
+<div id="toast"></div>
 
 <script>
-/* ===== CONFIG: edit these if a free model name changes ===== */
+/* ===== AYARLAR: model adları değişirse buradan düzelt ===== */
 const CONFIG={
-  chatUrl:"/api/chat",   // secure proxy: keys stay on the server
+  chatUrl:"/api/chat",   // güvenli sunucu: anahtarlar Vercel'de kalır
+  ttsUrl:"/api/tts",
   models:{normal:"gemini-2.5-flash-lite",high:"gemini-2.5-flash",max:"gemini-2.5-pro",xhigh:"gemini-2.5-pro"},
-  extra:{xhigh:"Think step by step. Check your reasoning, then give a thorough, well-structured answer."},
+  extra:{xhigh:"Adım adım düşün, mantığını kontrol et, sonra kapsamlı ve düzenli bir cevap ver."},
   musicUrl:"https://api-inference.huggingface.co/models/facebook/musicgen-small",
-  system:"You are Dunkles, a friendly, concise, capable assistant. Reply in the user's language."
+  system:"Sen Dunkles'sin: samimi, kısa ve yetenekli bir asistan. Varsayılan olarak Türkçe, kullanıcı başka dilde yazarsa onun dilinde cevap ver."
 };
+const LANG="tr-TR";
 const $=id=>document.getElementById(id);
 const log=$("log"),box=$("box");
-let history=[],pending=[],handsFree=false,speaking=false;
+let history=[],pending=[];
 const store={get:k=>{try{return localStorage.getItem(k)||""}catch(e){return ""}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),2000)}
 
 function add(role,text,node){
   $("empty")&&$("empty").remove();
@@ -97,18 +163,20 @@ function add(role,text,node){
   if(node)d.appendChild(node);
   log.appendChild(d);log.scrollTop=log.scrollHeight;return d;
 }
-function renderChips(){$("chips").innerHTML="";pending.forEach((p,i)=>{const s=document.createElement("span");s.textContent=p.name+" ✕";s.onclick=()=>{pending.splice(i,1);renderChips()};$("chips").appendChild(s)})}
+function dots(){const s=document.createElement("span");s.className="dots";s.innerHTML="<i></i><i></i><i></i>";return s}
+function renderChips(){$("chips").innerHTML="";pending.forEach((p,i)=>{const s=document.createElement("span");s.textContent=p.name+"  ×";s.onclick=()=>{pending.splice(i,1);renderChips();updateGo()};$("chips").appendChild(s)})}
+function updateGo(){$("row").classList.toggle("has",box.value.trim().length>0||pending.length>0)}
 
-/* ---------- attachments ---------- */
+/* ---------- ekler ---------- */
 $("attach").onclick=()=>$("file").click();
 $("file").onchange=async e=>{
   for(const f of e.target.files){
-    if(f.type.startsWith("image/")){pending.push({name:f.name,kind:"image",data:await toDataUrl(f)})}
-    else if(f.type==="application/pdf"){pending.push({name:f.name,kind:"text",data:await readPdf(f)})}
-    else if(f.type.startsWith("text/")||/\.(txt|md|csv|json)$/i.test(f.name)){pending.push({name:f.name,kind:"text",data:(await f.text()).slice(0,20000)})}
-    else{pending.push({name:f.name,kind:"note",data:`[Attached ${f.type||"file"}: ${f.name}. Its contents cannot be read in the free version.]`})}
+    if(f.type.startsWith("image/"))pending.push({name:f.name,kind:"image",data:await toDataUrl(f)});
+    else if(f.type==="application/pdf")pending.push({name:f.name,kind:"text",data:await readPdf(f)});
+    else if(f.type.startsWith("text/")||/\.(txt|md|csv|json)$/i.test(f.name))pending.push({name:f.name,kind:"text",data:(await f.text()).slice(0,20000)});
+    else pending.push({name:f.name,kind:"note",data:`[Ek dosya: ${f.name}. İçeriği ücretsiz sürümde okunamıyor.]`});
   }
-  e.target.value="";renderChips();
+  e.target.value="";renderChips();updateGo();
 };
 const toDataUrl=f=>new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result);x.readAsDataURL(f)});
 async function readPdf(f){
@@ -118,87 +186,116 @@ async function readPdf(f){
     const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let t="";
     for(let i=1;i<=Math.min(pdf.numPages,30);i++){const c=await(await pdf.getPage(i)).getTextContent();t+=c.items.map(x=>x.str).join(" ")+"\n"}
     return t.slice(0,20000);
-  }catch(e){return "[Could not read PDF text]"}
+  }catch(e){return "[PDF okunamadı]"}
 }
 
-/* ---------- send ---------- */
+/* ---------- yapay zeka ---------- */
+async function ask(text,files=[]){
+  add("user",text+(files.length?"\nEk: "+files.map(f=>f.name).join(", "):""));
+  const parts=[];let ctx="";
+  files.forEach(f=>{if(f.kind==="image")parts.push({type:"image_url",image_url:{url:f.data}});else ctx+=`\n\n--- ${f.name} ---\n${f.data}`});
+  parts.unshift({type:"text",text:(text||"Ekli dosyalara bak lütfen.")+ctx});
+  history.push({role:"user",content:parts.length===1?parts[0].text:parts});
+  const tier=$("tier").value;
+  const sys=CONFIG.system+(CONFIG.extra[tier]?" "+CONFIG.extra[tier]:"");
+  const out=add("bot","",dots());
+  try{
+    const r=await fetch(CONFIG.chatUrl,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:CONFIG.models[tier],messages:[{role:"system",content:sys},...history.slice(-12)]})});
+    if(!r.ok)throw new Error("sunucu "+r.status);
+    const j=await r.json();const a=j.choices?.[0]?.message?.content||"(cevap yok)";
+    out.textContent=a;history.push({role:"assistant",content:a});
+    log.scrollTop=log.scrollHeight;return a;
+  }catch(e){out.textContent="Yapay zekaya ulaşılamadı ("+e.message+"). Bağlantını kontrol edip tekrar dene.";history.pop();return null}
+}
 async function send(){
   const text=box.value.trim();
   if(!text&&!pending.length)return;
   box.value="";box.style.height="auto";
-  const files=pending;pending=[];renderChips();
-  const shown=text+(files.length?"\n📎 "+files.map(f=>f.name).join(", "):"");
-  add("user",shown);
-  if(text.startsWith("/music"))return makeMusic(text.replace("/music","").trim()||"calm lo-fi beat");
-  if(/spotify/i.test(text)&&/(history|recommend)/i.test(text)&&!store.get("dk_sp_token")){
-    add("bot","Spotify needs a one-time login. Add your free Spotify Client ID in Settings first (see the setup guide). I'll answer without your history for now.");
-  }
-  const parts=[];let ctx="";
-  files.forEach(f=>{if(f.kind==="image")parts.push({type:"image_url",image_url:{url:f.data}});else ctx+=`\n\n--- ${f.name} ---\n${f.data}`});
-  parts.unshift({type:"text",text:(text||"Please look at the attached file(s).")+ctx});
-  history.push({role:"user",content:parts.length===1?parts[0].text:parts});
-  const tier=$("tier").value;
-  const sys=CONFIG.system+(CONFIG.extra[tier]?" "+CONFIG.extra[tier]:"");
-  const out=add("bot","…");
-  try{
-    const r=await fetch(CONFIG.chatUrl,{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model:CONFIG.models[tier],messages:[{role:"system",content:sys},...history.slice(-12)]})});
-    if(!r.ok)throw new Error("Server returned "+r.status);
-    const j=await r.json();const a=j.choices?.[0]?.message?.content||"(no answer)";
-    out.textContent=a;history.push({role:"assistant",content:a});
-    if(handsFree)speak(a);
-  }catch(e){out.textContent="Could not reach the AI service ("+e.message+"). Check your connection and try again.";history.pop()}
-  log.scrollTop=log.scrollHeight;
+  const files=pending;pending=[];renderChips();updateGo();
+  if(text.startsWith("/music")){add("user",text);return makeMusic(text.replace("/music","").trim()||"sakin lo-fi ritim")}
+  if(/spotify/i.test(text)&&/(geçmiş|history|öner|recommend)/i.test(text)&&!store.get("dk_sp_token"))
+    toast("Spotify girişi henüz kurulu değil");
+  await ask(text,files);
 }
 $("send").onclick=send;
+$("vbtn").onclick=openVoice;
 box.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&innerWidth>700){e.preventDefault();send()}});
-box.addEventListener("input",()=>{box.style.height="auto";box.style.height=box.scrollHeight+"px"});
+box.addEventListener("input",()=>{box.style.height="auto";box.style.height=box.scrollHeight+"px";updateGo()});
 
-/* ---------- music ---------- */
+/* ---------- müzik ---------- */
 async function makeMusic(prompt){
-  const tok=store.get("dk_hf");const out=add("bot","Generating music… this can take up to a minute.");
-  if(!tok){out.textContent="Add a free Hugging Face token in Settings to generate music.";return}
+  const tok=store.get("dk_hf");const out=add("bot","",dots());
+  if(!tok){out.textContent="Müzik üretmek için Ayarlar'dan ücretsiz Hugging Face anahtarı ekle.";return}
   try{
     const r=await fetch(CONFIG.musicUrl,{method:"POST",headers:{Authorization:"Bearer "+tok,"Content-Type":"application/json"},body:JSON.stringify({inputs:prompt})});
-    if(!r.ok)throw new Error("status "+r.status+(r.status===503?" (model is loading, retry in 30s)":""));
+    if(!r.ok)throw new Error("durum "+r.status+(r.status===503?" (model yükleniyor, 30 sn sonra tekrar dene)":""));
     const a=document.createElement("audio");a.controls=true;a.src=URL.createObjectURL(await r.blob());
-    out.textContent="Here's your track: "+prompt;out.appendChild(a);
-  }catch(e){out.textContent="Music generation failed: "+e.message}
+    out.textContent="İşte parçan: "+prompt;out.appendChild(a);
+  }catch(e){out.textContent="Müzik üretilemedi: "+e.message}
 }
 
-/* ---------- voice ---------- */
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null;
-function listen(){
-  if(!SR){add("bot","Voice input isn't supported in this browser. Try Chrome or Safari.");return}
-  if(rec){rec.stop();return}
-  rec=new SR();rec.lang=navigator.language||"en-US";rec.interimResults=true;
-  rec.onstart=()=>$("mic").classList.add("rec");
-  rec.onresult=e=>{box.value=[...e.results].map(r=>r[0].transcript).join("")};
-  rec.onend=()=>{$("mic").classList.remove("rec");rec=null;if(handsFree&&box.value.trim())send();else if(handsFree&&!speaking)setTimeout(listen,400)};
-  rec.onerror=()=>{rec=null;$("mic").classList.remove("rec")};
-  rec.start();
-}
-function speakLocal(t){
-  if(!window.speechSynthesis)return;speechSynthesis.cancel();speaking=true;
-  const u=new SpeechSynthesisUtterance(t.replace(/[*#`_]/g,""));u.lang=navigator.language||"en-US";
-  u.onend=()=>{speaking=false;if(handsFree)listen()};speechSynthesis.speak(u);
-}
-async function speak(t){
-  speaking=true;
-  try{
-    const r=await fetch("/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:t.replace(/[*#`_]/g,"").slice(0,1500)})});
-    if(!r.ok)throw 0;
-    const a=new Audio(URL.createObjectURL(await r.blob()));
-    a.onended=()=>{speaking=false;if(handsFree)listen()};await a.play();
-  }catch(e){speakLocal(t)}
-}
-$("mic").onclick=listen;
-$("hands").onclick=()=>{handsFree=!handsFree;$("hands").classList.toggle("on",handsFree);if(handsFree)listen();else{speechSynthesis.cancel();rec&&rec.stop()}};
+/* ---------- sesle yazma (dikte) ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let dict=null;
+$("mic").onclick=()=>{
+  if(!SR)return toast("Bu tarayıcı sesli girişi desteklemiyor");
+  if(dict){dict.stop();return}
+  dict=new SR();dict.lang=LANG;dict.interimResults=true;
+  dict.onstart=()=>$("mic").classList.add("rec");
+  dict.onresult=e=>{box.value=[...e.results].map(r=>r[0].transcript).join("");updateGo()};
+  dict.onend=()=>{dict=null;$("mic").classList.remove("rec")};
+  dict.onerror=ev=>{if(ev.error==="not-allowed")toast("Mikrofon izni ver");};
+  dict.start();
+};
 
-/* ---------- settings ---------- */
-$("hf").value=store.get("dk_hf");$("sp").value=store.get("dk_sp");
-$("gear").onclick=()=>$("dlg").showModal();$("close").onclick=()=>$("dlg").close();
-$("save").onclick=()=>{store.set("dk_hf",$("hf").value.trim());store.set("dk_sp",$("sp").value.trim());$("dlg").close()};
-</script>
-</body>
-</html>
+/* ---------- sesli sohbet ---------- */
+const player=new Audio();
+const SILENT="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+let vOn=false,vState="idle",vRec=null,curDone=null,raf=0,tt=0;
+const wave=$("wave");for(let i=0;i<21;i++)wave.appendChild(document.createElement("i"));
+const bars=[...wave.children];
+const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+const LABEL={idle:"Hazır",listening:"Dinliyorum…",thinking:"Düşünüyorum…",speaking:"Konuşuyorum…"};
+function setState(s){vState=s;$("voice").dataset.s=s;$("vstate").textContent=LABEL[s]}
+function frame(){
+  tt+=.05;const mid=10;
+  bars.forEach((b,i)=>{
+    const env=1-Math.abs(i-mid)/mid*.65;let a;
+    if(vState==="listening")a=.14+.45*env*Math.abs(Math.sin(tt*2.2+i*.7))*(.6+.4*Math.sin(tt*.8+i));
+    else if(vState==="speaking")a=.18+.8*env*Math.abs(Math.sin(tt*3.4+i*.55))*Math.abs(Math.sin(tt*1.2+i*.25));
+    else if(vState==="thinking")a=.15+.25*Math.abs(Math.sin(tt*3-i*.45));
+    else a=.12;
+    b.style.transform="scaleY("+(reduce?.3:a)+")";
+  });
+  raf=requestAnimationFrame(frame);
+}
+function openVoice(){
+  if(!SR)return toast("Bu tarayıcı sesli sohbeti desteklemiyor (Chrome veya Safari dene)");
+  player.src=SILENT;player.play().catch(()=>{}); // ses iznini kullanıcı dokunuşunda aç
+  vOn=true;$("voice").classList.add("open");$("voice").setAttribute("aria-hidden","false");$("vtext").textContent="";
+  cancelAnimationFrame(raf);frame();vListen();
+}
+function closeVoice(){
+  vOn=false;$("voice").classList.remove("open");$("voice").setAttribute("aria-hidden","true");
+  if(vRec){vRec.onend=null;try{vRec.abort()}catch(e){}vRec=null}
+  stopSpeech();setState("idle");setTimeout(()=>{if(!vOn)cancelAnimationFrame(raf)},400);
+}
+function vListen(){
+  if(!vOn)return;setState("listening");
+  let final="";vRec=new SR();vRec.lang=LANG;vRec.interimResults=true;
+  vRec.onresult=e=>{final=[...e.results].map(r=>r[0].transcript).join("");$("vtext").textContent=final};
+  vRec.onerror=ev=>{
+    if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){vRec.onend=null;vRec=null;toast("Mikrofon izni gerekli");closeVoice()}
+  };
+  vRec.onend=()=>{vRec=null;if(!vOn)return;final.trim()?vAsk(final.trim()):setTimeout(vListen,300)};
+  try{vRec.start()}catch(e){setTimeout(vListen,500)}
+}
+async function vAsk(t){
+  setState("thinking");
+  const a=await ask(t);
+  if(!vOn)return;
+  if(a){$("vtext").textContent=a;await vSpeak(a)}else{$("vtext").textContent="Bir hata oldu, tekrar dinliyorum."}
+  if(vOn)vListen();
+}
+function vSpeak(t){
+ 
