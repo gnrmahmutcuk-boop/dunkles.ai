@@ -27,7 +27,9 @@ function toGemini(messages) {
 
 export default async (req) => {
   if (req.method !== "POST") return json({ error: "Sadece POST" }, 405);
-  const key = process.env.GEMINI_API_KEY;
+  // yaygın yapıştırma hatalarını otomatik temizle: boşluk, tırnak, "ADI=" öneki
+  let key = (process.env.GEMINI_API_KEY || "").trim().replace(/^["']+|["']+$/g, "");
+  if (key.includes("=")) key = key.split("=").pop().trim();
   if (!key) return json({ error: "GEMINI_API_KEY Netlify'da tanımlı değil (Environment variables, sonra yeniden deploy)" }, 500);
   let body;
   try { body = await req.json(); } catch { return json({ error: "Geçersiz istek" }, 400); }
@@ -46,7 +48,22 @@ export default async (req) => {
     const r = await fetch(url, { method: "POST", headers, body: JSON.stringify(toGemini(messages)) });
     const raw = await r.json().catch(() => ({}));
     const d = Array.isArray(raw) ? raw[0] : raw;
-    if (!r.ok) return json({ error: (d && d.error && d.error.message) || "Google hatası" }, r.status);
+    if (!r.ok) {
+      const msg = (d && d.error && d.error.message) || "Google hatası";
+      // Anahtar geçersizse geçici yedek: anahtarsız ücretsiz servis
+      if ([400, 401, 403].includes(r.status)) {
+        try {
+          const f = await fetch("https://text.pollinations.ai/openai", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ model: "openai", messages }),
+            signal: AbortSignal.timeout(8000),
+          });
+          if (f.ok) return json(await f.json());
+        } catch {}
+      }
+      return json({ error: msg + ` [anahtar: ${key.length} karakter, başı "${key.slice(0, 4)}"]` }, r.status);
+    }
     const text = ((d.candidates || [])[0]?.content?.parts || []).map((p) => p.text || "").join("");
     return json({ choices: [{ message: { content: text || "(cevap yok)" } }] });
   } catch (e) {
@@ -55,4 +72,4 @@ export default async (req) => {
 };
 
 export const config = { path: "/api/chat" };
-        
+              
