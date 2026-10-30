@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dunkles</title>
+<style>
+:root{--bg:#e4e6e8;--panel:#eceef0;--bubble:#f7f8f9;--user:#0a3626;--userText:#fff;--text:#1b1f1d;--muted:#5d6661;--line:#cfd3d6;--accent:#0a3626}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center}
+#app{width:100%;max-width:900px;height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0)}
+header{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 16px 8px}
+/* LOGO FRAME: replace dunkles.png with your own file, or paste an <img> / <svg> inside #logo */
+#logo{width:72px;height:72px;border:2px dashed var(--line);border-radius:20px;display:grid;place-items:center;overflow:hidden;color:var(--muted);font-size:12px;background:var(--panel)}
+#logo img{width:100%;height:100%;object-fit:contain}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+select,button{font:inherit}
+select{background:var(--bubble);border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--text)}
+.chip{background:var(--bubble);border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--text);cursor:pointer}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+#log{flex:1;overflow-y:auto;padding:8px 16px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:85%;padding:10px 14px;border-radius:20px;background:var(--bubble);border:1px solid var(--line);white-space:pre-wrap;word-wrap:break-word}
+.msg.user{align-self:flex-end;background:var(--user);color:var(--userText);border-color:var(--user)}
+.msg audio,.msg img{max-width:100%;border-radius:12px;margin-top:6px}
+.empty{margin:auto;text-align:center;color:var(--muted);max-width:320px}
+#chips{display:flex;gap:6px;padding:0 16px;flex-wrap:wrap}
+#chips span{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px}
+footer{padding:8px 12px calc(10px + env(safe-area-inset-bottom,0));}
+.row{display:flex;gap:6px;align-items:flex-end;background:var(--bubble);border:1px solid var(--line);border-radius:26px;padding:6px}
+textarea{flex:1;border:0;outline:0;background:transparent;resize:none;font:inherit;color:var(--text);max-height:140px;padding:8px 6px}
+.ib{width:42px;height:42px;border-radius:50%;border:0;background:transparent;cursor:pointer;font-size:20px;color:var(--text)}
+.ib:hover{background:var(--panel)}
+#mic{background:var(--accent);color:#fff}
+#mic.rec{background:#b3261e}
+#send{background:var(--accent);color:#fff}
+button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+dialog{border:1px solid var(--line);border-radius:20px;background:var(--bubble);color:var(--text);max-width:420px;width:90%}
+dialog input{width:100%;padding:8px;border:1px solid var(--line);border-radius:10px;font:inherit;margin:4px 0 12px}
+@media(min-width:700px){#logo{width:88px;height:88px}.msg{max-width:75%}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div id="logo"><img src="dunkles.png" alt="Dunkles logo" onerror="this.replaceWith('Your logo')"></div>
+  <div class="bar">
+    <select id="tier" aria-label="Performance mode">
+      <option value="normal">Normal · fast</option>
+      <option value="high">High · balanced</option>
+      <option value="max">Maximum · deep</option>
+      <option value="xhigh">Extra High · ultimate</option>
+    </select>
+    <button class="chip" id="hands">Hands-free</button>
+    <button class="chip" id="gear">Settings</button>
+  </div>
+</header>
+
+<div id="log"><div class="empty" id="empty"><b>Hi, I'm Dunkles.</b><br>Type, talk, or attach a file. Start a message with <code>/music</code> to generate a track.</div></div>
+<div id="chips"></div>
+
+<footer>
+  <div class="row">
+    <button class="ib" id="attach" aria-label="Attach file">📎</button>
+    <textarea id="box" rows="1" placeholder="Message Dunkles"></textarea>
+    <button class="ib" id="mic" aria-label="Voice input">🎤</button>
+    <button class="ib" id="send" aria-label="Send">➤</button>
+  </div>
+  <input type="file" id="file" hidden multiple accept="image/*,video/*,audio/*,.pdf,.txt,.md,.csv,.json,.doc,.docx">
+</footer>
+</div>
+
+<dialog id="dlg">
+  <h3>Settings</h3>
+  <label>Hugging Face token (optional, for /music)<input id="hf" placeholder="hf_..." autocomplete="off"></label>
+  <label>Spotify Client ID (optional)<input id="sp" placeholder="Spotify Client ID" autocomplete="off"></label>
+  <button class="chip on" id="save">Save</button> <button class="chip" id="close">Close</button>
+</dialog>
+
+<script>
+/* ===== CONFIG: edit these if a free model name changes ===== */
+const CONFIG={
+  chatUrl:"/api/chat",   // secure proxy: keys stay on the server
+  models:{normal:"gemini-2.5-flash-lite",high:"gemini-2.5-flash",max:"gemini-2.5-pro",xhigh:"gemini-2.5-pro"},
+  extra:{xhigh:"Think step by step. Check your reasoning, then give a thorough, well-structured answer."},
+  musicUrl:"https://api-inference.huggingface.co/models/facebook/musicgen-small",
+  system:"You are Dunkles, a friendly, concise, capable assistant. Reply in the user's language."
+};
+const $=id=>document.getElementById(id);
+const log=$("log"),box=$("box");
+let history=[],pending=[],handsFree=false,speaking=false;
+const store={get:k=>{try{return localStorage.getItem(k)||""}catch(e){return ""}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+
+function add(role,text,node){
+  $("empty")&&$("empty").remove();
+  const d=document.createElement("div");d.className="msg "+role;d.textContent=text||"";
+  if(node)d.appendChild(node);
+  log.appendChild(d);log.scrollTop=log.scrollHeight;return d;
+}
+function renderChips(){$("chips").innerHTML="";pending.forEach((p,i)=>{const s=document.createElement("span");s.textContent=p.name+" ✕";s.onclick=()=>{pending.splice(i,1);renderChips()};$("chips").appendChild(s)})}
+
+/* ---------- attachments ---------- */
+$("attach").onclick=()=>$("file").click();
+$("file").onchange=async e=>{
+  for(const f of e.target.files){
+    if(f.type.startsWith("image/")){pending.push({name:f.name,kind:"image",data:await toDataUrl(f)})}
+    else if(f.type==="application/pdf"){pending.push({name:f.name,kind:"text",data:await readPdf(f)})}
+    else if(f.type.startsWith("text/")||/\.(txt|md|csv|json)$/i.test(f.name)){pending.push({name:f.name,kind:"text",data:(await f.text()).slice(0,20000)})}
+    else{pending.push({name:f.name,kind:"note",data:`[Attached ${f.type||"file"}: ${f.name}. Its contents cannot be read in the free version.]`})}
+  }
+  e.target.value="";renderChips();
+};
+const toDataUrl=f=>new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result);x.readAsDataURL(f)});
+async function readPdf(f){
+  try{
+    if(!window.pdfjsLib){await new Promise((ok,no)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";s.onload=ok;s.onerror=no;document.head.appendChild(s)});
+      pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"}
+    const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let t="";
+    for(let i=1;i<=Math.min(pdf.numPages,30);i++){const c=await(await pdf.getPage(i)).getTextContent();t+=c.items.map(x=>x.str).join(" ")+"\n"}
+    return t.slice(0,20000);
+  }catch(e){return "[Could not read PDF text]"}
+}
+
+/* ---------- send ---------- */
+async function send(){
+  const text=box.value.trim();
+  if(!text&&!pending.length)return;
+  box.value="";box.style.height="auto";
+  const files=pending;pending=[];renderChips();
+  const shown=text+(files.length?"\n📎 "+files.map(f=>f.name).join(", "):"");
+  add("user",shown);
+  if(text.startsWith("/music"))return makeMusic(text.replace("/music","").trim()||"calm lo-fi beat");
+  if(/spotify/i.test(text)&&/(history|recommend)/i.test(text)&&!store.get("dk_sp_token")){
+    add("bot","Spotify needs a one-time login. Add your free Spotify Client ID in Settings first (see the setup guide). I'll answer without your history for now.");
+  }
+  const parts=[];let ctx="";
+  files.forEach(f=>{if(f.kind==="image")parts.push({type:"image_url",image_url:{url:f.data}});else ctx+=`\n\n--- ${f.name} ---\n${f.data}`});
+  parts.unshift({type:"text",text:(text||"Please look at the attached file(s).")+ctx});
+  history.push({role:"user",content:parts.length===1?parts[0].text:parts});
+  const tier=$("tier").value;
+  const sys=CONFIG.system+(CONFIG.extra[tier]?" "+CONFIG.extra[tier]:"");
+  const out=add("bot","…");
+  try{
+    const r=await fetch(CONFIG.chatUrl,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:CONFIG.models[tier],messages:[{role:"system",content:sys},...history.slice(-12)]})});
+    if(!r.ok)throw new Error("Server returned "+r.status);
+    const j=await r.json();const a=j.choices?.[0]?.message?.content||"(no answer)";
+    out.textContent=a;history.push({role:"assistant",content:a});
+    if(handsFree)speak(a);
+  }catch(e){out.textContent="Could not reach the AI service ("+e.message+"). Check your connection and try again.";history.pop()}
+  log.scrollTop=log.scrollHeight;
+}
+$("send").onclick=send;
+box.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&innerWidth>700){e.preventDefault();send()}});
+box.addEventListener("input",()=>{box.style.height="auto";box.style.height=box.scrollHeight+"px"});
+
+/* ---------- music ---------- */
+async function makeMusic(prompt){
+  const tok=store.get("dk_hf");const out=add("bot","Generating music… this can take up to a minute.");
+  if(!tok){out.textContent="Add a free Hugging Face token in Settings to generate music.";return}
+  try{
+    const r=await fetch(CONFIG.musicUrl,{method:"POST",headers:{Authorization:"Bearer "+tok,"Content-Type":"application/json"},body:JSON.stringify({inputs:prompt})});
+    if(!r.ok)throw new Error("status "+r.status+(r.status===503?" (model is loading, retry in 30s)":""));
+    const a=document.createElement("audio");a.controls=true;a.src=URL.createObjectURL(await r.blob());
+    out.textContent="Here's your track: "+prompt;out.appendChild(a);
+  }catch(e){out.textContent="Music generation failed: "+e.message}
+}
+
+/* ---------- voice ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null;
+function listen(){
+  if(!SR){add("bot","Voice input isn't supported in this browser. Try Chrome or Safari.");return}
+  if(rec){rec.stop();return}
+  rec=new SR();rec.lang=navigator.language||"en-US";rec.interimResults=true;
+  rec.onstart=()=>$("mic").classList.add("rec");
+  rec.onresult=e=>{box.value=[...e.results].map(r=>r[0].transcript).join("")};
+  rec.onend=()=>{$("mic").classList.remove("rec");rec=null;if(handsFree&&box.value.trim())send();else if(handsFree&&!speaking)setTimeout(listen,400)};
+  rec.onerror=()=>{rec=null;$("mic").classList.remove("rec")};
+  rec.start();
+}
+function speakLocal(t){
+  if(!window.speechSynthesis)return;speechSynthesis.cancel();speaking=true;
+  const u=new SpeechSynthesisUtterance(t.replace(/[*#`_]/g,""));u.lang=navigator.language||"en-US";
+  u.onend=()=>{speaking=false;if(handsFree)listen()};speechSynthesis.speak(u);
+}
+async function speak(t){
+  speaking=true;
+  try{
+    const r=await fetch("/api/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:t.replace(/[*#`_]/g,"").slice(0,1500)})});
+    if(!r.ok)throw 0;
+    const a=new Audio(URL.createObjectURL(await r.blob()));
+    a.onended=()=>{speaking=false;if(handsFree)listen()};await a.play();
+  }catch(e){speakLocal(t)}
+}
+$("mic").onclick=listen;
+$("hands").onclick=()=>{handsFree=!handsFree;$("hands").classList.toggle("on",handsFree);if(handsFree)listen();else{speechSynthesis.cancel();rec&&rec.stop()}};
+
+/* ---------- settings ---------- */
+$("hf").value=store.get("dk_hf");$("sp").value=store.get("dk_sp");
+$("gear").onclick=()=>$("dlg").showModal();$("close").onclick=()=>$("dlg").close();
+$("save").onclick=()=>{store.set("dk_hf",$("hf").value.trim());store.set("dk_sp",$("sp").value.trim());$("dlg").close()};
+</script>
+</body>
+</html>
