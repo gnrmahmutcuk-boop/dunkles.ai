@@ -94,6 +94,7 @@ window.addEventListener("error",function(e){var d=document.createElement("div");
 </script>
 </head>
 <body>
+<noscript><div style="position:fixed;left:0;right:0;top:0;z-index:99;background:#b3261e;color:#fff;padding:10px 14px;font:15px sans-serif">JavaScript kapalı. Tarayıcı ayarlarından bu site için JavaScript'i aç, sayfayı yenile.</div></noscript>
 <div id="app">
 <header>
   <button class="ib" id="gear" aria-label="Ayarlar"><svg class="i" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>
@@ -106,7 +107,7 @@ window.addEventListener("error",function(e){var d=document.createElement("div");
   </select>
 </header>
 
-<div id="log"><div class="empty" id="empty"><b>Merhaba, ben Dunkles.</b><br>Yaz, konuş ya da dosya ekle. Müzik üretmek için mesajı <code>/music</code> ile başlat.</div></div>
+<div id="log"><div class="empty" id="empty"><b>Merhaba, ben Dunkles.</b><br>Yaz, konuş ya da dosya ekle. Müzik üretmek için mesajı <code>/music</code> ile başlat.<br><small style="opacity:.45">sürüm 6</small></div></div>
 <div id="chips"></div>
 
 <footer>
@@ -285,7 +286,4 @@ function closeVoice(){
 }
 function vListen(){
   if(!vOn)return;setState("listening");
-  let final="";vRec=new SR();vRec.lang=LANG;vRec.interimResults=true;
-  vRec.onresult=e=>{final=[...e.results].map(r=>r[0].transcript).join("");$("vtext").textContent=final};
-  vRec.onerror=ev=>{
-    if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){vRec.onend=null;vRec=null;toast("Mikrofon izni gerekli");closeVoice(
+  let final="";vRec=new SR();vRec.lang=LAN
