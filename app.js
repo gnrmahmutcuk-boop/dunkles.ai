@@ -50,14 +50,14 @@ async function readPdf(f){
 }
 
 /* ---------- yapay zeka ---------- */
-async function ask(text,files=[]){
+async function ask(text,files=[],voice){
   add("user",text+(files.length?"\nEk: "+files.map(f=>f.name).join(", "):""));
   const parts=[];let ctx="";
   files.forEach(f=>{if(f.kind==="image")parts.push({type:"image_url",image_url:{url:f.data}});else ctx+=`\n\n--- ${f.name} ---\n${f.data}`});
   parts.unshift({type:"text",text:(text||"Ekli dosyalara bak lütfen.")+ctx});
   chatHistory.push({role:"user",content:parts.length===1?parts[0].text:parts});
   const tier=$("tier").value;
-  const sys=CONFIG.system+(CONFIG.extra[tier]?" "+CONFIG.extra[tier]:"");
+  const sys=CONFIG.system+(CONFIG.extra[tier]?" "+CONFIG.extra[tier]:"")+(voice?" Şu an sesli sohbettesin: en fazla 2-3 kısa cümleyle, liste, yıldız ve başlık kullanmadan, konuşur gibi cevap ver.":"");
   const out=add("bot","",dots());
   try{
     const r=await fetch(CONFIG.chatUrl,{method:"POST",headers:{"Content-Type":"application/json"},
@@ -152,7 +152,7 @@ function vListen(){
 }
 async function vAsk(t){
   setState("thinking");
-  const a=await ask(t);
+  const a=await ask(t,[],true);
   if(!vOn)return;
   if(a){$("vtext").textContent=a;await vSpeak(a)}else{$("vtext").textContent="Bir hata oldu, tekrar dinliyorum."}
   if(vOn)vListen();
@@ -191,4 +191,4 @@ $("save").onclick=()=>{store.set("dk_hf",$("hf").value.trim());store.set("dk_sp"
 $("clear").onclick=()=>{chatHistory=[];log.innerHTML='<div class="empty" id="empty"><b>Sohbet temizlendi.</b><br>Yeni bir şey sor.</div>';closeSheet()};
 addEventListener("keydown",e=>{if(e.key==="Escape"){closeSheet();if(vOn)closeVoice()}});
 })();
-  
+      
