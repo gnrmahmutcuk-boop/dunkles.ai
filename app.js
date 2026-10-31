@@ -163,9 +163,9 @@ function vSpeak(t){
     const clean=t.replace(/[*#`_]/g,"").slice(0,1500);
     const local=()=>{
       if(!window.speechSynthesis)return res();
-      const u=new SpeechSynthesisUtterance(clean);u.lang=LANG;u.onend=()=>res();u.onerror=()=>res();speechSynthesis.speak(u);
+      const u=new SpeechSynthesisUtterance(clean);u.lang=LANG;const tv=speechSynthesis.getVoices().find(x=>x.lang&&x.lang.toLowerCase().indexOf("tr")===0);if(tv)u.voice=tv;u.onend=()=>res();u.onerror=()=>res();speechSynthesis.speak(u);
     };
-    if(store.get("dk_voice")==="browser")return local();
+    if(store.get("dk_voice")!=="eleven")return local();
     try{
       const r=await fetch(CONFIG.ttsUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text:clean})});
       if(!r.ok){let m="";try{m=(await r.text()).slice(0,140)}catch(e){}throw new Error(m||("durum "+r.status))}
@@ -185,10 +185,10 @@ $("vclose").onclick=closeVoice;
 
 /* ---------- ayarlar ---------- */
 const openSheet=()=>document.body.classList.add("sheet"),closeSheet=()=>document.body.classList.remove("sheet");
-$("hf").value=store.get("dk_hf");$("sp").value=store.get("dk_sp");$("voiceSel").value=store.get("dk_voice")||"eleven";
+$("hf").value=store.get("dk_hf");$("sp").value=store.get("dk_sp");$("voiceSel").value=store.get("dk_voice")||"browser";
 $("gear").onclick=openSheet;$("back").onclick=closeSheet;
 $("save").onclick=()=>{store.set("dk_hf",$("hf").value.trim());store.set("dk_sp",$("sp").value.trim());store.set("dk_voice",$("voiceSel").value);closeSheet();toast("Kaydedildi")};
 $("clear").onclick=()=>{chatHistory=[];log.innerHTML='<div class="empty" id="empty"><b>Sohbet temizlendi.</b><br>Yeni bir şey sor.</div>';closeSheet()};
 addEventListener("keydown",e=>{if(e.key==="Escape"){closeSheet();if(vOn)closeVoice()}});
 })();
-      
+    
