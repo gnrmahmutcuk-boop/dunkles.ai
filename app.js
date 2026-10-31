@@ -171,8 +171,8 @@ function vSpeak(t){
       if(!r.ok){let m="";try{m=(await r.text()).slice(0,140)}catch(e){}throw new Error(m||("durum "+r.status))}
       if(!vOn)return res();
       player.onended=()=>res();player.onerror=()=>res();
-      player.src=URL.createObjectURL(await r.blob());await player.play();
-    }catch(e){toast("ElevenLabs çalışmadı: "+e.message+" (tarayıcı sesi kullanılıyor)",6000);if(vOn)local();else res()}
+      $("verr").textContent="";player.src=URL.createObjectURL(await r.blob());await player.play();
+    }catch(e){$("verr").textContent="ElevenLabs çalışmadı: "+e.message+" — tarayıcı sesi kullanılıyor";if(vOn)local();else res()}
   });
 }
 function stopSpeech(){
@@ -191,4 +191,4 @@ $("save").onclick=()=>{store.set("dk_hf",$("hf").value.trim());store.set("dk_sp"
 $("clear").onclick=()=>{chatHistory=[];log.innerHTML='<div class="empty" id="empty"><b>Sohbet temizlendi.</b><br>Yeni bir şey sor.</div>';closeSheet()};
 addEventListener("keydown",e=>{if(e.key==="Escape"){closeSheet();if(vOn)closeVoice()}});
 })();
-                      
+  
